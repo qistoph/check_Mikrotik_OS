@@ -44,6 +44,7 @@ except:
 
 
 def getLatestMikrotik(ReleaseChannel):
+    import traceback
 
     error = ""
 
@@ -67,10 +68,12 @@ def getLatestMikrotik(ReleaseChannel):
             nagios_exit("Unknown", "Unknown Mikrotik Release Channel")
 
         try:
+            debugMessage(f"URL: {URL}")
 
             with urllib.request.urlopen(URL) as response:
                 ReturnedString = response.read()
 
+            debugMessage(f"Response: {ReturnedString}")
             ReturnedString = ReturnedString.decode('utf-8')
             ReturnedString = ReturnedString.split()
             lastestVersion = ReturnedString[0]
@@ -84,6 +87,8 @@ def getLatestMikrotik(ReleaseChannel):
         except Exception as e:
             debugMessage(e.__class__)
             debugMessage(e)
+            if debug:
+                raise(e)
             nagios_exit("Unknown", "Could not retrive latest RouterOS version from Mikrotik Website")
 
     nagios_exit("Unknown", "Could not retrive latest RouterOS version from Mikrotik Website:" + str(error))
