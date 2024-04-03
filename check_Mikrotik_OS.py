@@ -54,9 +54,10 @@ def getLatestMikrotik(ReleaseChannel):
         # supplied release channel.
 
         # Define URLS.  (Note that only RouterOS V7 is currently supported.
-        currentURL = "routeros/LATEST.7"
-        bugFixOnlyURL = "routeros/LATEST.7fix"
-        RCURL = "routeros/LATEST.7rc"
+        currentURL = "routeros/NEWESTa7.stable"
+        bugFixOnlyURL = "routeros/NEWESTa7.long-term"
+        RCURL = "routeros/NEWESTa7.testing"
+        DevURL = "routeros/NEWESTa7.development"
 
         if ReleaseChannel == "Current":
             URL = EachBaseURL + currentURL
@@ -64,6 +65,8 @@ def getLatestMikrotik(ReleaseChannel):
             URL = EachBaseURL + bugFixOnlyURL
         elif ReleaseChannel == "ReleaseCandidate":
             URL = EachBaseURL + RCURL
+        elif ReleaseChannel == "Development":
+            URL = EachBaseURL + DevURL
         else:
             nagios_exit("Unknown", "Unknown Mikrotik Release Channel")
 
@@ -77,7 +80,10 @@ def getLatestMikrotik(ReleaseChannel):
             ReturnedString = ReturnedString.decode('utf-8')
             ReturnedString = ReturnedString.split()
             lastestVersion = ReturnedString[0]
-            ReleaseDate = ReturnedString[1]
+            if len(ReturnedString) > 1:
+                ReleaseDate = ReturnedString[1]
+            else:
+                ReleaseDate = 0
             return lastestVersion, ReleaseDate
         except ssl.CertificateError as e:
             debugMessage(URL)
