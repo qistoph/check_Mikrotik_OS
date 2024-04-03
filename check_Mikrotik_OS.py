@@ -52,10 +52,10 @@ def getLatestMikrotik(ReleaseChannel):
         # Get the lasest Version number from the Mikrotik website based on the
         # supplied release channel.
 
-        # Define URLS.  (Note that only RouterOS V6 is currently supported.
-        currentURL = "routeros/LATEST.6"
-        bugFixOnlyURL = "routeros/LATEST.6fix"
-        RCURL = "routeros/LATEST.6rc"
+        # Define URLS.  (Note that only RouterOS V7 is currently supported.
+        currentURL = "routeros/LATEST.7"
+        bugFixOnlyURL = "routeros/LATEST.7fix"
+        RCURL = "routeros/LATEST.7rc"
 
         if ReleaseChannel == "Current":
             URL = EachBaseURL + currentURL
