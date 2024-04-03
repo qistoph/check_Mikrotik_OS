@@ -96,13 +96,18 @@ def getSNMP_OID(IPAddress, Version, SNMPOptions, OID):
 
     # Gets the SNMP OID from the requested OID.
 
+
     if Version == "2c":
-        g = getCmd(SnmpEngine(),
-                   CommunityData(SNMPOptions['Community']),
-                   UdpTransportTarget((IPAddress, 161)),
-                   ContextData(),
-                   ObjectType(ObjectIdentity(OID))
-                   )
+        authData = CommunityData(SNMPOptions['Community'])
+    elif Version == "3":
+        authData = UsmUserData(SNMPOptions['User'], SNMPOptions['Passphrase'])
+
+    g = getCmd(SnmpEngine(),
+            authData,
+            UdpTransportTarget((IPAddress, 161)),
+            ContextData(),
+            ObjectType(ObjectIdentity(OID))
+            )
 
     errorIndication, errorStatus, errorIndex, varBinds = next(g)
     if errorIndication is None:
@@ -120,10 +125,14 @@ def process_cli():
                          help='Mikrotik Router IP Address',
                          type=str, required=True)
     parser.add_argument('-v', '--snmpVersion',
-                         help='SNMP Version (only 2c currently supported) ',
+                         help='SNMP Version (only 2c or 3 currently supported) ',
                          type=str, required=True)
     parser.add_argument('-C', '--snmpCommunity',
                          help='SNMP Community String (only v1 and 2c) ', type=str, required=False)
+    parser.add_argument('-u', '--snmpUser',
+                        help='SNMP Username (v3)', type=str, required=False)
+    parser.add_argument('-A', '--snmpPassphrase',
+                        help='SNMP Passphrase (v3)', type=str, required=False)
     parser.add_argument('-c', '--mikrotikReleaseChannel',
                          help='The mikrotik release channel to check for updates against: Bugfix, Current or \
                          ReleaseCandidate',
@@ -135,8 +144,12 @@ def process_cli():
     except Exception:
         sys.exit(3)
 
-    if not args.snmpCommunity and args.snmpVersion != 3:
+    if not args.snmpCommunity and args.snmpVersion != '3':
         print ("SNMP Community string required for SNMP Versions other than v3.")
+        sys.exit(3)
+
+    if (not args.snmpUser or not args.snmpPassphrase) and args.snmpVersion == '3':
+        print("SNMP Username and Passphrase required for version 3. Only authNoPriv/MD5 supported")
         sys.exit(3)
 
     return args
@@ -187,7 +200,7 @@ def statusCheck(currentStatus, NewStatus):
 def main():
 
     args = process_cli()
-    SNMPOptions = {'Community': args.snmpCommunity}
+    SNMPOptions = {'Community': args.snmpCommunity, 'User': args.snmpUser, 'Passphrase': args.snmpPassphrase}
 
     # Get information from SNMP and mikrotik websites about version mumbers
     LatestRouterOSVersion, LatestRouterOSVersion_ReleaseDate = (getLatestMikrotik(args.mikrotikReleaseChannel))
@@ -204,7 +217,7 @@ def main():
         now = datetime.datetime.now()
         dateofLastRelease = datetime.datetime.fromtimestamp(float(LatestRouterOSVersion_ReleaseDate))
         delta = now - dateofLastRelease
-        RouterOSMessage = "Router upgrade from " + CurrentRouterOsVerion + " to " + LatestRouterOSVersion + " is required"
+        RouterOSMessage = "Router upgrade from " + CurrentRouterOsVerion + " to " + LatestRouterOSVersion + " is required."
         if delta.days < 7:
             RouterOSStatus = 'Warning'
         else:
