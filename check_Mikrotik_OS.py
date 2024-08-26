@@ -125,7 +125,7 @@ def getSNMP_OID(IPAddress, Version, SNMPOptions, OID):
         firstrow = varBinds[0]  # note that any subsequent results are discarded
         return firstrow[1]
     else:
-        nagios_exit("Unknown", "SNMP Communication Error")
+        nagios_exit("Unknown", "SNMP Communication Error: " + str(errorIndication))
 
 
 def process_cli():
